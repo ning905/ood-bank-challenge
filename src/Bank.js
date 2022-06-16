@@ -1,26 +1,4 @@
-class Bank {
-  constructor() {
-    this.user = new User();
-  }
-
-  getBalance() {
-    return this.user.getBalance();
-  }
-
-  getTransactions() {
-    return this.user.getTransactions();
-  }
-
-  deposit(amount) {
-    this.user.deposit(amount);
-  }
-
-  withdraw(amount) {
-    return this.user.withdraw(amount);
-  }
-}
-
-class User {
+class BankAccount {
   #balance;
   #transactions;
   constructor() {
@@ -32,43 +10,77 @@ class User {
     return this.#balance;
   }
 
-  getTransactions() {
-    return this.#transactions;
-  }
-
-  deposit(amount, date = new Date()) {
+  credit(date, amount) {
     this.#balance += amount;
-    const transaction = {
-      date: date,
-      credit: "",
-      debit: amount,
-      balance: this.#balance,
-    };
+    const transaction = new Transaction(date, amount, "credit", this.#balance);
     this.#transactions.push(transaction);
   }
 
-  withdraw(amount) {
+  debit(date, amount) {
     if (this.#balance >= amount) {
       this.#balance -= amount;
+      const transaction = new Transaction(date, amount, "debit", this.#balance);
+      this.#transactions.push(transaction);
+    }
+    return false;
+  }
+
+  getStatement() {
+    const thisStatement = new Statement();
+    return thisStatement.getStatement();
+  }
+}
+
+class Transaction {
+  constructor(date, type, amount, balance) {
+    this.date = date;
+    this.type = type;
+    this.amount = amount;
+    this.balance = balance;
+  }
+
+  isCredit() {
+    if (this.type === "credit") {
+      return true;
+    }
+    return false;
+  }
+
+  isDebit() {
+    if (this.type === "debit") {
       return true;
     }
     return false;
   }
 }
 
-class BankAccount {
-  #balance;
-  constructor() {
-    this.#balance = 0;
-  }
-}
-
-class Transaction {
-  constructor() {}
-}
-
 class Statement {
   constructor() {
-    this.statements = [];
+    this.header = "date   || credit || debit || balance /n";
+  }
+
+  getSingleLine(transaction) {
+    let thisLine;
+    if (transaction.isCredit()) {
+      thisLine =
+        "transaction.date || transaction.amount ||      || transaction.balance /n";
+    } else if (transaction.isDebit()) {
+      thisLine =
+        "transaction.date ||      || transaction.amount || transaction.balance /n";
+    }
+    return thisLine;
+  }
+
+  getBody(transactions) {
+    let body = "";
+    for (const transaction in transactions) {
+      body += getSingleLine(transaction);
+    }
+    return body;
+  }
+
+  getStatement(transactions) {
+    const statement = this.header + getBody(transactions);
+    return statement;
   }
 }
