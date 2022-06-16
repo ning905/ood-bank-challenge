@@ -1,3 +1,6 @@
+const Transaction = require("./Transaction");
+const Statement = require("./Statement");
+
 class BankAccount {
   #balance;
   #transactions;
@@ -10,77 +13,39 @@ class BankAccount {
     return this.#balance;
   }
 
-  credit(date, amount) {
-    this.#balance += amount;
-    const transaction = new Transaction(date, amount, "credit", this.#balance);
-    this.#transactions.push(transaction);
+  getTransactions() {
+    return this.#transactions;
   }
 
-  debit(date, amount) {
+  credit(amount, date = new Date().toLocaleDateString("en-GB")) {
+    if (amount <= 0) {
+      return "Please enter a valid amount.";
+    }
+    this.#balance += amount;
+    const transaction = new Transaction(date, "credit", amount, this.#balance);
+    this.#transactions.unshift(transaction);
+  }
+
+  debit(amount, date = new Date().toLocaleDateString("en-GB")) {
+    if (amount <= 0) {
+      return "Please enter a valid amount.";
+    }
     if (this.#balance >= amount) {
       this.#balance -= amount;
-      const transaction = new Transaction(date, amount, "debit", this.#balance);
-      this.#transactions.push(transaction);
+      const transaction = new Transaction(date, "debit", amount, this.#balance);
+      this.#transactions.unshift(transaction);
+    } else {
+      return "Your balance is not enough.";
     }
-    return false;
   }
 
   getStatement() {
+    if (this.#transactions.length === 0) {
+      return "You have no transaction history.";
+    }
     const thisStatement = new Statement();
-    return thisStatement.getStatement();
+    return thisStatement.getStatement(this.#transactions);
   }
 }
 
-class Transaction {
-  constructor(date, type, amount, balance) {
-    this.date = date;
-    this.type = type;
-    this.amount = amount;
-    this.balance = balance;
-  }
-
-  isCredit() {
-    if (this.type === "credit") {
-      return true;
-    }
-    return false;
-  }
-
-  isDebit() {
-    if (this.type === "debit") {
-      return true;
-    }
-    return false;
-  }
-}
-
-class Statement {
-  constructor() {
-    this.header = "date   || credit || debit || balance /n";
-  }
-
-  getSingleLine(transaction) {
-    let thisLine;
-    if (transaction.isCredit()) {
-      thisLine =
-        "transaction.date || transaction.amount ||      || transaction.balance /n";
-    } else if (transaction.isDebit()) {
-      thisLine =
-        "transaction.date ||      || transaction.amount || transaction.balance /n";
-    }
-    return thisLine;
-  }
-
-  getBody(transactions) {
-    let body = "";
-    for (const transaction in transactions) {
-      body += getSingleLine(transaction);
-    }
-    return body;
-  }
-
-  getStatement(transactions) {
-    const statement = this.header + getBody(transactions);
-    return statement;
-  }
-}
+module.exports = BankAccount;
