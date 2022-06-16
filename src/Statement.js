@@ -3,24 +3,30 @@ class Statement {
     this.header = "date       || credit || debit  || balance";
   }
 
-  getStatement(transactions) {
-    let body = "";
-    for (let i = 0; i < transactions.length; i++) {
-      const transaction = transactions[i];
-      console.log(transaction);
-      if (transaction.isCredit()) {
-        body += `\n${transaction.date}  || ${transaction.amount.toFixed(
-          2
-        )}||        || ${transaction.balance.toFixed(2)}`;
-      } else if (transaction.isDebit()) {
-        body += `\n${
-          transaction.date
-        }  ||        || ${transaction.amount.toFixed(
-          2
-        )} || ${transaction.balance.toFixed(2)}`;
-      }
+  getSingleLine(transaction) {
+    let thisLine;
+    if (transaction.isCredit()) {
+      thisLine = `\n${transaction.date}  || ${transaction.amount.toFixed(
+        2
+      )}||        || ${transaction.balance.toFixed(2)}`;
+    } else if (transaction.isDebit()) {
+      thisLine = `\n${
+        transaction.date
+      }  ||        || ${transaction.amount.toFixed(
+        2
+      )} || ${transaction.balance.toFixed(2)}`;
     }
-    return this.header + body;
+    return thisLine;
+  }
+
+  getBody(transactions) {
+    return transactions.reduce((body, transaction) => {
+      return body + this.getSingleLine(transaction);
+    }, "");
+  }
+
+  getStatement(transactions) {
+    return this.header + this.getBody(transactions);
   }
 }
 
