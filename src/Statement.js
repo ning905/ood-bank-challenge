@@ -1,6 +1,11 @@
 class Statement {
+  #header;
   constructor() {
-    this.header = "date       || credit || debit  || balance";
+    this.#header = "date       || credit || debit  || balance";
+  }
+
+  getHeader() {
+    return this.#header;
   }
 
   getSingleLine(transaction) {
@@ -26,7 +31,7 @@ class Statement {
   }
 
   getStatement(transactions) {
-    return this.header + this.getBody(transactions);
+    return this.#header + this.getBody(transactions);
   }
 }
 
