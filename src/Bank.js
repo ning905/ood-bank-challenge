@@ -1,64 +1,6 @@
-const Transaction = require("./Transaction");
+const BankAccount = require("./BankAccount");
 const Statement = require("./Statement");
-
-class BankAccount {
-  #name;
-  #id;
-  #balance;
-  #transactions;
-  constructor(name, id, balance) {
-    this.#name = name;
-    this.#id = id;
-    this.#balance = balance;
-    this.#transactions = [];
-  }
-
-  getName() {
-    return this.#name;
-  }
-
-  getId() {
-    return this.#id;
-  }
-
-  getBalance() {
-    return this.#balance;
-  }
-
-  getTransactions() {
-    return this.#transactions;
-  }
-
-  credit(amount, date = new Date().toLocaleDateString("en-GB")) {
-    if (amount <= 0) {
-      return "Please enter a valid amount.";
-    }
-    this.#balance += amount;
-    const transaction = new Transaction(date, "credit", amount, this.#balance);
-    this.#transactions.unshift(transaction);
-  }
-
-  debit(amount, date = new Date().toLocaleDateString("en-GB")) {
-    if (amount <= 0) {
-      return "Please enter a valid amount.";
-    }
-    if (this.#balance >= amount) {
-      this.#balance -= amount;
-      const transaction = new Transaction(date, "debit", amount, this.#balance);
-      this.#transactions.unshift(transaction);
-    } else {
-      return "Your balance is not enough.";
-    }
-  }
-
-  getStatement() {
-    if (this.#transactions.length === 0) {
-      return "You have no transaction history.";
-    }
-    const thisStatement = new Statement();
-    return thisStatement.getStatement(this.#transactions);
-  }
-}
+const Transaction = require("./Transaction");
 
 class Bank {
   #accounts;
@@ -90,7 +32,7 @@ class Bank {
     return this.#balance;
   }
 
-  addAccount(name, balance = 0) {
+  addAccount(name, deposit = 0) {
     if (name === null) {
       return "Invalid Account Name.";
     }
@@ -98,7 +40,10 @@ class Bank {
       return "Account already exists.";
     }
     const thisId = this.#id;
-    const newAccount = new BankAccount(name, thisId, balance);
+    const newAccount = new BankAccount(name, thisId);
+    if (deposit) {
+      newAccount.credit(deposit);
+    }
     this.#accounts.push(newAccount);
     this.#id++;
   }
@@ -134,9 +79,20 @@ class Bank {
     }
     return findAccount.getStatement();
   }
-}
 
-module.exports = BankAccount;
+  getAllStatements() {
+    const statement = new Statement();
+    const body = this.#accounts.reduce(
+      (sum, account) =>
+        sum +
+        account.getName() +
+        "||" +
+        statement.getBody(account.getTransactions()),
+      ""
+    );
+    return "Account       ||" + statement.getHeader() + body;
+  }
+}
 
 const bank = new Bank();
 console.log("bank accounts", bank.getAccounts());
@@ -159,3 +115,5 @@ console.log(
   "get account statement \n",
   bank.getAccountStatement("special account")
 );
+console.log("all statements \n", bank.getAllStatements());
+console.log("parse date", Date.parse("20/06/2022"));
